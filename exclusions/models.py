@@ -3,7 +3,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 
 # Model
-class Exclusion(models.Model):
+class StagingOIG(models.Model):
     # identity fields
     last_name     = models.CharField(max_length=255, blank=True, db_index=True)
     first_name    = models.CharField(max_length=255, blank=True, db_index=True)
@@ -84,7 +84,7 @@ class Exclusion(models.Model):
     @property
     def is_reinstated(self):
         return self.reinstatement_date is not None
-class GeorgiaExclusion(models.Model):
+class StagingGeorgia(models.Model):
     last_name     = models.CharField(max_length=255, blank=True, db_index=True)
     first_name    = models.CharField(max_length=255, blank=True, db_index=True)
     middle_name   = models.CharField(max_length=255, blank=True)
@@ -110,7 +110,7 @@ class GeorgiaExclusion(models.Model):
         parts = [self.first_name, self.middle_name, self.last_name]
         return ' '.join(p for p in parts if p).strip() or self.business_name
 
-class CaliforniaExclusion(models.Model):
+class StagingCalifornia(models.Model):
     last_name     = models.CharField(max_length=255, blank=True, db_index=True)
     first_name    = models.CharField(max_length=255, blank=True, db_index=True)
     middle_name   = models.CharField(max_length=255, blank=True)
@@ -138,3 +138,167 @@ class CaliforniaExclusion(models.Model):
     def full_name(self):
         parts = [self.first_name, self.middle_name, self.last_name]
         return ' '.join(p for p in parts if p).strip() or self.business_name
+
+class StagingNewYork(models.Model):
+    business_name  = models.CharField(max_length=512, blank=True, db_index=True)
+    npi            = models.CharField(max_length=20, blank=True, db_index=True)
+    license_number = models.CharField(max_length=255, blank=True)
+    provider_type  = models.CharField(max_length=255, blank=True)
+    state          = models.CharField(max_length=2, blank=True, db_index=True)
+    exclusion_date = models.DateField(null=True, blank=True)
+    created_at     = models.DateTimeField(auto_now_add=True)
+    updated_at     = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'staging_new_york'
+        ordering = ['business_name']
+
+    def __str__(self):
+        return self.business_name
+
+    @property
+    def full_name(self):
+        return self.business_name
+    
+class StagingOhio(models.Model):
+    # individual fields
+    last_name     = models.CharField(max_length=255, blank=True, db_index=True)
+    first_name    = models.CharField(max_length=255, blank=True, db_index=True)
+    middle_name   = models.CharField(max_length=255, blank=True)
+    dob           = models.DateField(null=True, blank=True)
+
+    # organization fields
+    business_name = models.CharField(max_length=512, blank=True, db_index=True)
+    address       = models.CharField(max_length=512, blank=True)
+    city          = models.CharField(max_length=255, blank=True)
+    zip_code      = models.CharField(max_length=10, blank=True)
+
+    # shared fields
+    npi           = models.CharField(max_length=20, blank=True, db_index=True)
+    provider_type = models.CharField(max_length=255, blank=True)
+    status        = models.CharField(max_length=50, blank=True)
+    state         = models.CharField(max_length=2, blank=True, db_index=True)
+    exclusion_date = models.DateField(null=True, blank=True)
+    created_at    = models.DateTimeField(auto_now_add=True)
+    updated_at    = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'staging_ohio'
+        ordering = ['last_name', 'first_name', 'business_name']
+
+    def __str__(self):
+        if self.last_name:
+            return f'{self.last_name}, {self.first_name}'
+        return self.business_name
+
+    @property
+    def full_name(self):
+        parts = [self.first_name, self.middle_name, self.last_name]
+        return ' '.join(p for p in parts if p).strip() or self.business_name
+
+class StagingNorthDakota(models.Model):
+    provider_name  = models.CharField(max_length=512, blank=True, db_index=True)
+    business_name  = models.CharField(max_length=512, blank=True, db_index=True)
+    npi            = models.CharField(max_length=20, blank=True, db_index=True)
+    license_number = models.CharField(max_length=255, blank=True)
+    provider_type  = models.CharField(max_length=255, blank=True)
+    sanction_type  = models.CharField(max_length=255, blank=True)
+    address        = models.CharField(max_length=512, blank=True)
+    city           = models.CharField(max_length=255, blank=True)
+    state          = models.CharField(max_length=2, blank=True, db_index=True)
+    zip_code       = models.CharField(max_length=10, blank=True)
+    exclusion_date = models.DateField(null=True, blank=True)
+    created_at     = models.DateTimeField(auto_now_add=True)
+    updated_at     = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'staging_north_dakota'
+        ordering = ['provider_name']
+
+    def __str__(self):
+        return self.provider_name or self.business_name
+
+    @property
+    def full_name(self):
+        return self.provider_name or self.business_name
+
+
+class StagingNorthCarolina(models.Model):
+    excluded_entity = models.CharField(max_length=512, blank=True, db_index=True)
+    npi             = models.CharField(max_length=20, blank=True, db_index=True)
+    exclusion_date  = models.DateField(null=True, blank=True)
+    reason          = models.CharField(max_length=255, blank=True)
+    city            = models.CharField(max_length=255, blank=True)
+    state           = models.CharField(max_length=2, blank=True, db_index=True)
+    zip_code        = models.CharField(max_length=10, blank=True)
+    ownership       = models.CharField(max_length=512, blank=True)
+    created_at      = models.DateTimeField(auto_now_add=True)
+    updated_at      = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'staging_north_carolina'
+        ordering = ['excluded_entity']
+
+    def __str__(self):
+        return self.excluded_entity
+
+    @property
+    def full_name(self):
+        return self.excluded_entity
+
+class MainExclusion(models.Model):
+    # identity fields
+    first_name    = models.CharField(max_length=255, blank=True, db_index=True)
+    last_name     = models.CharField(max_length=255, blank=True, db_index=True)
+    middle_name   = models.CharField(max_length=255, blank=True)
+    business_name = models.CharField(max_length=512, blank=True, db_index=True)
+
+    # provider identifiers
+    npi = models.CharField(max_length=20, blank=True, db_index=True)
+
+    # classification
+    general       = models.CharField(max_length=255, blank=True)
+    specialty     = models.CharField(max_length=255, blank=True)
+    provider_type = models.CharField(max_length=255, blank=True)
+
+    # location
+    address  = models.CharField(max_length=512, blank=True)
+    city     = models.CharField(max_length=255, blank=True)
+    state    = models.CharField(max_length=2, blank=True, db_index=True)
+    zip_code = models.CharField(max_length=10, blank=True)
+
+    # exclusion details
+    exclusion_type     = models.CharField(max_length=20, blank=True)
+    exclusion_date     = models.DateField(null=True, blank=True, db_index=True)
+    reinstatement_date = models.DateField(null=True, blank=True)
+
+    # source tracking
+    source    = models.CharField(max_length=50, blank=True, db_index=True)
+    source_id = models.BigIntegerField(null=True, blank=True)
+
+    # timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'main_exclusion'
+        ordering = ['last_name', 'first_name']
+        indexes = [
+            models.Index(fields=['state', 'exclusion_date'], name='main_state_date_idx'),
+            models.Index(fields=['source'],                  name='main_source_idx'),
+            models.Index(fields=['npi'],                     name='main_npi_idx'),
+        ]
+
+    def __str__(self):
+        if self.last_name:
+            return f'{self.last_name}, {self.first_name} ({self.source})'
+        return f'{self.business_name} ({self.source})'
+
+    @property
+    def full_name(self):
+        parts = [self.first_name, self.middle_name, self.last_name]
+        return ' '.join(p for p in parts if p).strip() or self.business_name
+
+    @property
+    def is_reinstated(self):
+        return self.reinstatement_date is not None

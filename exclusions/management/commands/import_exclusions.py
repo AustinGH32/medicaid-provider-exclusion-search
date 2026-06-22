@@ -1,7 +1,7 @@
 import csv
 from datetime import datetime
 from pathlib import Path
-from exclusions.models import Exclusion
+from exclusions.models import StagingOIG
 from django.core.management.base import BaseCommand, CommandError
 
 # This command imports exclusion data from a CSV file into the database.
@@ -59,7 +59,7 @@ class Command(BaseCommand):
 
         # If --clear flag is passed, delete all existing records first.
         if options['clear']:
-            count, _ = Exclusion.objects.all().delete()
+            count, _ = StagingOIG.objects.all().delete()
             self.stdout.write(self.style.WARNING(f'Cleared {count} existing records.'))
 
         self.stdout.write(f'Importing from {csv_path} ...')
@@ -81,7 +81,7 @@ class Command(BaseCommand):
 
             for row_num, row in enumerate(reader, start=1):
                 try:
-                    obj = Exclusion(
+                    obj = StagingOIG(
                         last_name     = clean_str(row.get('LASTNAME')),
                         first_name    = clean_str(row.get('FIRSTNAME')),
                         middle_name   = clean_str(row.get('MIDNAME')),
@@ -108,14 +108,14 @@ class Command(BaseCommand):
                     continue
 
                 if len(batch) >= batch_size:
-                    Exclusion.objects.bulk_create(batch)
+                    StagingOIG.objects.bulk_create(batch)
                     created += len(batch)
                     batch = []
                     self.stdout.write(f'  Inserted {created} rows...', ending='\r')
                     self.stdout.flush()
                 
             if batch:
-                Exclusion.objects.bulk_create(batch)
+                StagingOIG.objects.bulk_create(batch)
                 created += len(batch)
 
             self.stdout.write('')

@@ -3,7 +3,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
-from exclusions.models import CaliforniaExclusion
+from exclusions.models import StagingCalifornia
 
 
 def extract_npi(provider_number):
@@ -69,7 +69,7 @@ class Command(BaseCommand):
 
         # if --clear flag passed, wipe all existing California records first
         if options['clear']:
-            count, _ = CaliforniaExclusion.objects.all().delete()
+            count, _ = StagingCalifornia.objects.all().delete()
             self.stdout.write(self.style.WARNING(f'Cleared {count} existing California records.'))
 
         self.stdout.write(f'Importing from {csv_path} ...')
@@ -87,7 +87,7 @@ class Command(BaseCommand):
                     # which may contain multiple IDs separated by commas
                     npi = extract_npi(row.get('Provider Number', ''))
 
-                    obj = CaliforniaExclusion(
+                    obj = StagingCalifornia(
                         last_name      = clean_str(row.get('Last Name')),
                         first_name     = clean_str(row.get('First Name')),
                         middle_name    = clean_str(row.get('Middle Name')),
@@ -110,7 +110,7 @@ class Command(BaseCommand):
 
                 # insert in batches instead of one record at a time
                 if len(batch) >= batch_size:
-                    CaliforniaExclusion.objects.bulk_create(batch)
+                    StagingCalifornia.objects.bulk_create(batch)
                     created += len(batch)
                     batch = []
                     self.stdout.write(f'  Inserted {created} rows...', ending='\r')
@@ -118,7 +118,7 @@ class Command(BaseCommand):
 
             # insert the final batch of remaining records
             if batch:
-                CaliforniaExclusion.objects.bulk_create(batch)
+                StagingCalifornia.objects.bulk_create(batch)
                 created += len(batch)
 
         self.stdout.write('')

@@ -2,7 +2,7 @@ import pandas as pd  # reads Excel files
 from datetime import datetime  # converts date integers to real dates
 from django.core.management.base import BaseCommand, CommandError  # base class for management commands
 from pathlib import Path  # lets us work with file paths cleanly
-from exclusions.models import GeorgiaExclusion  # the new Georgia table model
+from exclusions.models import StagingGeorgia  # the new Georgia table model
 
 
 def parse_date(value):
@@ -50,7 +50,7 @@ class Command(BaseCommand):
 
         # if --clear flag passed, wipe all existing Georgia records first
         if options['clear']:
-            count, _ = GeorgiaExclusion.objects.all().delete()
+            count, _ = StagingGeorgia.objects.all().delete()
             self.stdout.write(self.style.WARNING(f'Cleared {count} existing Georgia records.'))
 
         self.stdout.write(f'Reading {excel_path} ...')
@@ -82,7 +82,7 @@ class Command(BaseCommand):
 
                 # create a GeorgiaExclusion object for each row
                 # we don't save yet, just collect in the batch list
-                obj = GeorgiaExclusion(
+                obj = StagingGeorgia(
                     last_name      = clean_str(row.get('last_name')),
                     first_name     = clean_str(row.get('first_name')),
                     middle_name    = clean_str(row.get('middle_name')),
@@ -102,7 +102,7 @@ class Command(BaseCommand):
 
         # insert all records in one database call instead of one at a time
         if batch:
-            GeorgiaExclusion.objects.bulk_create(batch)
+            StagingGeorgia.objects.bulk_create(batch)
             created += len(batch)
 
         self.stdout.write('')
