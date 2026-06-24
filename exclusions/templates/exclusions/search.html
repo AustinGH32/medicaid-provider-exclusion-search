@@ -160,7 +160,7 @@
                     <td>{{ result.exclusion_type }}</td>
                     <td>{{ result.exclusion_date }}</td>
                     <td>{{ result.is_reinstated }}</td>
-                    <td>{{ result.source }}</td>
+                    <td>{% if source == 'both' %}Both Lists{% else %}{{ result.source }}{% endif %}</td> 
                 </tr>
                 {% endfor %}
             </tbody>

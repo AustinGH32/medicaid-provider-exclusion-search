@@ -87,17 +87,31 @@ class Command(BaseCommand):
                     # which may contain multiple IDs separated by commas
                     npi = extract_npi(row.get('Provider Number', ''))
 
+                    raw_last     = clean_str(row.get('Last Name'))
+                    raw_first    = clean_str(row.get('First Name'))
+                    raw_business = clean_str(row.get('A/K/A-Also Known As\nD/B/A-Doing Business as'))
+
+                    # California puts business names in the Last Name column
+                    # when First Name is N/A it's a business not an individual
+                    if raw_first.upper() == 'N/A' or raw_first == '':
+                        last_name     = ''
+                        first_name    = ''
+                        business_name = raw_last
+                    else:
+                        last_name     = raw_last
+                        first_name    = raw_first
+                        business_name = raw_business if raw_business.upper() != 'N/A' else ''
+
                     obj = StagingCalifornia(
-                        last_name      = clean_str(row.get('Last Name')),
-                        first_name     = clean_str(row.get('First Name')),
+                        last_name      = last_name,
+                        first_name     = first_name,
                         middle_name    = clean_str(row.get('Middle Name')),
-                        # A/K/A field contains business name or "doing business as" name
-                        business_name  = clean_str(row.get('A/K/A-Also Known As\nD/B/A-Doing Business as')),
+                        business_name  = business_name,
                         npi            = npi,
                         provider_type  = clean_str(row.get('Provider Type')),
                         license_number = clean_str(row.get('License Number')),
                         address        = clean_str(row.get('Address(es)')),
-                        state          = 'CA',  # hardcoded since this is the California list
+                        state          = 'CA',
                         exclusion_date = parse_date(row.get('Date of Suspension')),
                         active_period  = clean_str(row.get('Active Period')),
                     )
