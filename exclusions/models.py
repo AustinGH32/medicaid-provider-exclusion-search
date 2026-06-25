@@ -245,6 +245,87 @@ class StagingNorthCarolina(models.Model):
     @property
     def full_name(self):
         return self.excluded_entity
+    
+class StagingOregon(models.Model):
+    first_name    = models.CharField(max_length=255, blank=True, db_index=True)
+    last_name     = models.CharField(max_length=255, blank=True, db_index=True)
+    business_name = models.CharField(max_length=512, blank=True, db_index=True)
+    npi           = models.CharField(max_length=20, blank=True, db_index=True)
+    provider_type = models.CharField(max_length=255, blank=True)
+    duration      = models.CharField(max_length=255, blank=True)
+    state         = models.CharField(max_length=2, blank=True, db_index=True)
+    exclusion_date = models.DateField(null=True, blank=True)
+    created_at    = models.DateTimeField(auto_now_add=True)
+    updated_at    = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'staging_oregon'
+        ordering = ['last_name', 'first_name', 'business_name']
+
+    def __str__(self):
+        if self.last_name:
+            return f'{self.last_name}, {self.first_name}'
+        return self.business_name
+
+    @property
+    def full_name(self):
+        parts = [self.first_name, self.last_name]
+        return ' '.join(p for p in parts if p).strip() or self.business_name
+
+class StagingPennsylvania(models.Model):
+    # Pennsylvania has both a combined ProviderName and separate name fields
+    last_name     = models.CharField(max_length=255, blank=True, db_index=True)
+    first_name    = models.CharField(max_length=255, blank=True, db_index=True)
+    middle_name   = models.CharField(max_length=255, blank=True)
+    business_name = models.CharField(max_length=512, blank=True, db_index=True)
+    npi           = models.CharField(max_length=20, blank=True, db_index=True)
+    license_number = models.CharField(max_length=255, blank=True)
+    status        = models.CharField(max_length=50, blank=True)
+    address       = models.CharField(max_length=512, blank=True)
+    state         = models.CharField(max_length=2, blank=True, db_index=True)
+    exclusion_date = models.DateField(null=True, blank=True)
+    end_date      = models.DateField(null=True, blank=True)
+    created_at    = models.DateTimeField(auto_now_add=True)
+    updated_at    = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'staging_pennsylvania'
+        ordering = ['last_name', 'first_name', 'business_name']
+
+    def __str__(self):
+        if self.last_name:
+            return f'{self.last_name}, {self.first_name}'
+        return self.business_name
+
+    @property
+    def full_name(self):
+        parts = [self.first_name, self.middle_name, self.last_name]
+        return ' '.join(p for p in parts if p).strip() or self.business_name
+    
+class StagingNewJersey(models.Model):
+    business_name  = models.CharField(max_length=512, blank=True, db_index=True)
+    title          = models.CharField(max_length=255, blank=True)
+    npi            = models.CharField(max_length=20, blank=True, db_index=True)
+    address        = models.CharField(max_length=512, blank=True)
+    city           = models.CharField(max_length=255, blank=True)
+    state          = models.CharField(max_length=2, blank=True, db_index=True)
+    zip_code       = models.CharField(max_length=10, blank=True)
+    action         = models.CharField(max_length=255, blank=True)
+    exclusion_date = models.DateField(null=True, blank=True)
+    expiration_date = models.DateField(null=True, blank=True)
+    created_at     = models.DateTimeField(auto_now_add=True)
+    updated_at     = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'staging_new_jersey'
+        ordering = ['business_name']
+
+    def __str__(self):
+        return self.business_name
+
+    @property
+    def full_name(self):
+        return self.business_name
 
 class MainExclusion(models.Model):
     # identity fields

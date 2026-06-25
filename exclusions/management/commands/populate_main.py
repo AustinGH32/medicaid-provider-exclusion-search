@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from exclusions.models import (
     StagingOIG, StagingGeorgia, StagingCalifornia,
     StagingNewYork, StagingOhio, StagingNorthDakota, StagingNorthCarolina,
+    StagingOregon, StagingPennsylvania, StagingNewJersey,
     MainExclusion
 )
 class Command(BaseCommand):
@@ -69,7 +70,7 @@ class Command(BaseCommand):
         self.stdout.write(f'  Done. {total} Medicare records.')
 
         
-        #  Populate from Georgia staging table (StagingGeorgia)
+        # Populate from Georgia staging table (StagingGeorgia)
         # Georgia has fewer fields than federal so some main_exclusion
         # fields will be left empty (specialty, city, zip_code, etc.)
         
@@ -258,6 +259,98 @@ class Command(BaseCommand):
         total += nc_count
         self.stdout.write(f'  Done. {nc_count} North Carolina records.')
         
+        
+
+        # ---------------------------------------------------------------
+        # STEP 8: Populate from Oregon staging table (StagingOregon)
+        # Oregon has separate first/last name fields and business name
+        # also has provider type and duration fields
+        # ---------------------------------------------------------------
+        self.stdout.write('Populating from StagingOregon...')
+        batch = []
+        or_count = 0
+        for record in StagingOregon.objects.all():
+            batch.append(MainExclusion(
+                first_name     = record.first_name,
+                last_name      = record.last_name,
+                business_name  = record.business_name,
+                npi            = record.npi,
+                provider_type  = record.provider_type,
+                state          = record.state,
+                exclusion_date = record.exclusion_date,
+                source         = 'OR - State Level',
+                source_id      = record.id,
+            ))
+            if len(batch) >= 500:
+                MainExclusion.objects.bulk_create(batch)
+                or_count += len(batch)
+                batch = []
+        if batch:
+            MainExclusion.objects.bulk_create(batch)
+            or_count += len(batch)
+        total += or_count
+        self.stdout.write(f'  Done. {or_count} Oregon records.')
+
+        # ---------------------------------------------------------------
+        # STEP 9: Populate from Pennsylvania staging table (StagingPennsylvania)
+        # Pennsylvania has separate first/last/middle name fields
+        # also has status (Precluded/Terminated) and end_date fields
+        # ---------------------------------------------------------------
+        self.stdout.write('Populating from StagingPennsylvania...')
+        batch = []
+        pa_count = 0
+        for record in StagingPennsylvania.objects.all():
+            batch.append(MainExclusion(
+                first_name     = record.first_name,
+                last_name      = record.last_name,
+                middle_name    = record.middle_name,
+                business_name  = record.business_name,
+                npi            = record.npi,
+                state          = record.state,
+                exclusion_date = record.exclusion_date,
+                source         = 'PA - State Level',
+                source_id      = record.id,
+            ))
+            if len(batch) >= 500:
+                MainExclusion.objects.bulk_create(batch)
+                pa_count += len(batch)
+                batch = []
+        if batch:
+            MainExclusion.objects.bulk_create(batch)
+            pa_count += len(batch)
+        total += pa_count
+        self.stdout.write(f'  Done. {pa_count} Pennsylvania records.')
+
+        # ---------------------------------------------------------------
+        # STEP 10: Populate from New Jersey staging table (StagingNewJersey)
+        # NJ combines all names into business_name field
+        # also has action type and expiration date fields
+        # ---------------------------------------------------------------
+        self.stdout.write('Populating from StagingNewJersey...')
+        batch = []
+        nj_count = 0
+        for record in StagingNewJersey.objects.all():
+            batch.append(MainExclusion(
+                business_name  = record.business_name,
+                npi            = record.npi,
+                address        = record.address,
+                city           = record.city,
+                state          = record.state,
+                zip_code       = record.zip_code,
+                exclusion_date = record.exclusion_date,
+                source         = 'NJ - State Level',
+                source_id      = record.id,
+            ))
+            if len(batch) >= 500:
+                MainExclusion.objects.bulk_create(batch)
+                nj_count += len(batch)
+                batch = []
+        if batch:
+            MainExclusion.objects.bulk_create(batch)
+            nj_count += len(batch)
+        total += nj_count
+        self.stdout.write(f'  Done. {nj_count} New Jersey records.')
+
         # print final summary showing records inserted from each source
         self.stdout.write('')
         self.stdout.write(self.style.SUCCESS(
