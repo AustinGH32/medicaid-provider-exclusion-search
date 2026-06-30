@@ -12,6 +12,11 @@ provider exclusion records across multiple data sources.
 - North Dakota exclusion list
 - Ohio exclusion list
 
+## States/Territories Without Lists (Use Federal List)
+- New Mexico
+- Oklahoma
+- Puerto Rico
+
 ## Tech Stack
 - Python / Django
 - PostgreSQL
